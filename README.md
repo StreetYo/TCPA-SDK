@@ -7,8 +7,8 @@ Login to your account. Generate your API keys
 if you don't have them yet. After that, put your API credentials in the following fields:
 
 ```php
-    private $api_username = '';
-    private $api_password = '';
+private $api_username = '';
+private $api_password = '';
 ```
 
 #Examples
