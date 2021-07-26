@@ -12,13 +12,22 @@ class TCPA_API {
     const ALL_TYPES = 'all';
 
     public function __construct($types = [self::ALL_TYPES]) {
-        $this->types = $types;
+        $this->setTypes($types);
     }
 
-    public function mass_scrub($numbers, $types = []) {
+    public function setTypes($types)
+    {
+        if(empty($types)) {
+            $this->types = [self::ALL_TYPES];
+        } else {
+            $this->types = $types;
+        }
+    }
+
+    public function mass_scrub($numbers, $fields = []) {
         if(count($numbers) < 3000)
-            return $this->request_small_list_numbers($numbers, $types);
-        return $this->request_big_list_numbers($numbers, $types);
+            return $this->request_small_list_numbers($numbers, $fields);
+        return $this->request_big_list_numbers($numbers, $fields);
     }
 
     public function request_single_number($number, $fields = []) {
@@ -40,14 +49,20 @@ class TCPA_API {
         return $types;
     }
 
-    public function request_small_list_numbers($numbers, $types = []) {
+    public function request_small_list_numbers($numbers, $fields = []) {
+        if(isset($fields['types'])) {
+            $types = $fields['types'];
+        } else {
+            $types = [];
+        }
+
         $types = $this->get_default_types_if_empty($types);
 
-        $ch = $this->get_curl('/phones', [
+        $ch = $this->get_curl('/phones', array_merge([
             'type' => json_encode($types),
             'phones' => json_encode($numbers),
             'small_list' => 'true'
-        ]);
+        ], $fields));
 
         $output = curl_exec($ch);
         curl_close($ch);
@@ -59,13 +74,19 @@ class TCPA_API {
         return $response;
     }
 
-    public function request_big_list_numbers($numbers, $types = []) {
+    public function request_big_list_numbers($numbers, $fields = []) {
+        if(isset($fields['types'])) {
+            $types = $fields['types'];
+        } else {
+            $types = [];
+        }
+
         $types = $this->get_default_types_if_empty($types);
 
-        $job_key = $this->request_job_key([
+        $job_key = $this->request_job_key(array_merge([
             'type' => json_encode($types),
             'phones' => json_encode($numbers)
-        ]);
+        ], $fields));
 
         $ch = $this->get_curl('/phones/get/', ['key' => $job_key]);
         $interval = 6;
@@ -159,7 +180,7 @@ function tcpa_scrub_single_number($phone_number, $fields = []) {
     return $api->request_single_number($phone_number, $fields);
 }
 
-function tcpa_mass_scrub($phone_numbers, $types = []) {
+function tcpa_mass_scrub($phone_numbers, $fields = []) {
     $api = new TCPA_API();
-    return $api->mass_scrub($phone_numbers, $types);
+    return $api->mass_scrub($phone_numbers, $fields);
 }

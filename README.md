@@ -36,5 +36,7 @@ tcpa_scrub_single_number('20123456789', [
 or if you scrub an array
 
 ```php
-tcpa_mass_scrub(['20123456789','20123456710'], [TCPA_API::TCPA_TYPE]);
+tcpa_mass_scrub(['20123456789','20123456710'], [
+    'types' => [TCPA_API::TCPA_TYPE]
+]);
 ```
