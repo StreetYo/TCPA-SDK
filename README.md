@@ -1,5 +1,3 @@
-# TCPA-SDK
-
 # Make it before use
 
 Login to your account. Generate your API keys 
