@@ -114,7 +114,7 @@ class TCPA_API {
 //  1. Sends phone numbers
 //  2. Get the job key
 //  3. Scans the job status with the key we got each 6 seconds
-//  4. When the result of the job is finished, it returns the scrub statuses
+//  4. When the result of the job is finished, it will return the scrub statuses
     public function request_big_list_numbers($numbers, $fields = []) {
         if(isset($fields['check_types'])) {
             $types = $fields['check_types'];
