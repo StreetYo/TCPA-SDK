@@ -52,6 +52,8 @@ class TCPA_API {
         }
     }
 
+//  Determines which type of scrub to use based on the phones count.
+//  You can't use the small list scrub if you have more then 3000 phone numbers.
     public function mass_scrub($numbers, $fields = []) {
         if(count($numbers) < 3000)
             return $this->request_small_list_numbers($numbers, $fields);
@@ -80,6 +82,7 @@ class TCPA_API {
         return $types;
     }
 
+//  Sends phone numbers and returns their scrub statuses immediately
     public function request_small_list_numbers($numbers, $fields = []) {
         if(isset($fields['check_types'])) {
             $types = $fields['check_types'];
@@ -107,6 +110,11 @@ class TCPA_API {
         } else return $response;
     }
 
+//  Sends phone numbers and returns their scrub statuses in time
+//  1. Sends phone numbers
+//  2. Get the job key
+//  3. Scans the job status with the key we got each 6 seconds
+//  4. When the result of the job is finished, it returns the scrub statuses
     public function request_big_list_numbers($numbers, $fields = []) {
         if(isset($fields['check_types'])) {
             $types = $fields['check_types'];
