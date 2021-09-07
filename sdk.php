@@ -1,18 +1,46 @@
 <?php
 
+/*
+* Version 1.0
+* tcpalitigatorlist.com API SDK
+*/
+
 class TCPA_API {
 
     protected $types = [];
     private $api_username = '';
     private $api_password = '';
+    private $response_format = 'array';
+    private $response_type = 'regular'; // boolean
 
+    const ALL_TYPES = 'all';
     const TCPA_TYPE = 'tcpa';
     const DNC_TYPE = 'dnc';
     const DNC_FED_TYPE = 'dnc_fed';
-    const ALL_TYPES = 'all';
 
-    public function __construct($types = [self::ALL_TYPES]) {
-        $this->setTypes($types);
+    public function __construct($config = []) {
+        $this->setConfig($config);
+    }
+
+    public function setConfig($config)
+    {
+        if ( !isset($config['api_username']) || !isset($config['api_password']) ){
+            throw new Exception('Missing credentials');
+        }
+        $this->api_username = $config['api_username'];
+        $this->api_password = $config['api_password'];
+
+        if ( isset($config['response_format']) ){
+            $this->response_format = $config['response_format'];
+        }
+
+        if ( isset($config['response_type']) ){
+            $this->response_type = $config['response_type'];
+        }
+
+        if ( isset($config['check_types']) ){
+            $this->setTypes($config['check_types']);
+        }
     }
 
     public function setTypes($types)
@@ -32,26 +60,29 @@ class TCPA_API {
 
     public function request_single_number($number, $fields = []) {
         $fields['phone_number'] = $number;
+        $fields['type'] = $fields['type'] ?? $this->types[0];
+        $fields['return'] = $fields['return'] ?? ($this->response_type == 'boolean' ? 'boolean' : 'regular');
 
         $ch = $this->get_curl('/phone', $fields);
 
         $output = curl_exec($ch);
         curl_close($ch);
 
-        return json_decode($output,true);
+        if ( $this->response_format == 'json' ){
+            return $output;
+        } else return json_decode($output,true);
     }
 
     private function get_default_types_if_empty($types = []) {
         if(!array($types) || empty($types)) {
             return $this->types;
         }
-
         return $types;
     }
 
     public function request_small_list_numbers($numbers, $fields = []) {
-        if(isset($fields['types'])) {
-            $types = $fields['types'];
+        if(isset($fields['check_types'])) {
+            $types = $fields['check_types'];
         } else {
             $types = [];
         }
@@ -71,12 +102,14 @@ class TCPA_API {
 
         $this->is_valid_response($response);
 
-        return $response;
+        if ( $this->response_format == 'json' ){
+            return $output;
+        } else return $response;
     }
 
     public function request_big_list_numbers($numbers, $fields = []) {
-        if(isset($fields['types'])) {
-            $types = $fields['types'];
+        if(isset($fields['check_types'])) {
+            $types = $fields['check_types'];
         } else {
             $types = [];
         }
@@ -173,14 +206,4 @@ class TCPA_API {
         return $ch;
     }
 
-}
-
-function tcpa_scrub_single_number($phone_number, $fields = []) {
-    $api = new TCPA_API();
-    return $api->request_single_number($phone_number, $fields);
-}
-
-function tcpa_mass_scrub($phone_numbers, $fields = []) {
-    $api = new TCPA_API();
-    return $api->mass_scrub($phone_numbers, $fields);
 }
